@@ -9,3 +9,4 @@ The following variables are set as maximums by default but you can modify them i
   let maxParticipants = 500;<br>
 <br>
 The maxRuns variable is dynamic. If the number of participants is set to 100 or lower, the maximum runs is set to 1000.<br>
+<script>console.log(1);</script>
