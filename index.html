@@ -287,8 +287,8 @@
         addTableRow(tableLoop, htmlLoop);
         addTableRow(tableRandom, htmlRandom);
         
-        document.getElementById('tableLoopFootNote').innerText = `${passesLoop} out of ${numOfRuns} runs passed`;
-        document.getElementById('tableRandomFootNote').innerText = `${passesRandom} out of ${numOfRuns} runs passed`;
+        document.getElementById('tableLoopFootNote').innerText = `${passesLoop} out of ${numOfRuns} runs passed or ${parseFloat((passesLoop/numOfRuns).toFixed(6))}%`;
+        document.getElementById('tableRandomFootNote').innerText = `${passesRandom} out of ${numOfRuns} runs passed or ${parseFloat((passesRandom/numOfRuns).toFixed(6))}%`;
 
         let tRuns = parseInt(totalRuns.innerText) + numOfRuns;
         totalRuns.innerText = tRuns;
