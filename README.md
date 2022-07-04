@@ -1,2 +1,2 @@
-# prisoner_experiment
+# prisoner-experiment
 Prisoner Experiment Simulator
