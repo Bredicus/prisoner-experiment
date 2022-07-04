@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Prison Break Experiment</title>
+  <meta name="description" content="Prison Break Experiment">
+  <meta name="author" content="EddyB">
+
+  <style>
+    label, .label {
+        display: inline-block;
+        width: 250px;
+    }
+    button {
+        width: 105px;
+        height: 30px;
+        font-size: 14px;
+        padding: 0px;
+        border-radius: 10px;
+        border: 2px solid #0066cc;
+        background-color: #0099cc;
+        color: #ffffff;
+    }
+    button:hover {
+        border: 2px solid #0099cc;
+        background-color: #00aacc;
+        color: #ffffff;
+        padding: 5px 10px;
+    }    
+    button:disabled {
+        border: 2px solid #999999;
+        background-color: #cccccc;
+        color: #666666;
+    }
+    iframe {
+        width: 560px;
+        height: 315px;
+        display: block;
+        border-style: none;
+        margin: auto;
+        padding-top: 5px;
+    }
+    .row {
+        display: flex;
+    }
+    .column {
+        flex: 50%;
+    }
+    .input-group {
+        margin-bottom: 10px;
+    }
+    .tableRuns, .tableRuns th, .tableRuns td {
+        border: 1px solid black;
+        border-collapse: collapse;
+        margin: auto;
+        padding: 10px;
+    }
+    .tableRuns th, .tableRuns td {
+        text-align: center;
+        width: 55px;
+    }
+    .table-header {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .pass {
+        background-color: green;
+    }
+    .fail {
+        background-color: red;
+    }
+    .danger-text {
+        color: red;
+        font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+    <div class="row">
+        <div class="column">
+            <h2><span class="label">Total Runs:</span> <span id="totalRuns">0</span></h2>
+            <h2><span class="label">Loop Total Success:</span> <span id="loopPassTotal">0</span> or <span id="loopPercentage">0</span>%</h2>
+            <h2><span class="label">Random Total Success:</span> <span id="randomPassTotal">0</span> or <span id="randomPercentage">0</span>%</h2>
+            
+            <div class="input-group">
+                <label for="runs">Number of runs:</label>
+                <input type="number" name="runs" id="runs" value="100">
+            </div>
+            <div class="input-group">
+                <label for="participants">Number of participants:</label>
+                <input type="number" name="participants" id="participants" value="100">
+            </div>
+
+            <div class="row">
+                <div class="label">
+                    <button id="startBtn" onclick="startRuns()">Start</button>
+                </div>
+
+                <div class="table-header">
+                    <a href="#readme">Read me</a>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <div class="row">
+                    <div class="table-header">
+                        <h2><span class="label">Legend:</span></h2>
+                    </div>
+
+                    <div class="table-header">
+                        <table class="tableRuns">
+                            <tr><th class="pass">Pass</th><th class="fail">Fail</th></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="column">
+            <iframe src="https://youtu.be/iSNsgj1OCLA" frameborder="0" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <hr>
+            
+    <h3 class="table-header">Loop Run Results:</h3>
+    <table id="tableLoop" class="tableRuns">
+    </table>
+    <br>
+    <h4 class="table-header" id="tableLoopFootNote"></h4>
+
+    <hr>
+
+    <h3 class="table-header">Random Run Results:</h3>
+    <table id="tableRandom" class="tableRuns">
+    </table>
+    <h4 class="table-header" id="tableRandomFootNote"></h4>
+
+    <hr>
+
+    <div id="readme">
+        <h2>Read Me</h2>
+        <p>The embedded video explains what this is simulating.</p>
+        <p>The following variables are set as maximums by default but you can modify them in the console if you wish to but <span class="danger-text">note these operations are running on your device and are blocking.</span></p>
+        <ul>
+            <li>let maxCols = 25;</li>
+            <li>let maxRuns = 100;</li>
+            <li>let maxParticipants = 500;</li>
+        </ul>
+        <p>The maxRuns variable is dynamic. If the number of participants is set to 100 or lower, the maximum runs is set to 1000.</p>
+    </div>
+
+  <script>
+    const lowParticipants = 100;
+    const maxRunsLowParticipants = 1000;
+    let maxCols = 25;
+    let maxRuns = 100;
+    let maxParticipants = 500;
+    
+    class Prisoner {
+        constructor(id, boxCount) {
+            this.id = id;
+            this.boxCount = boxCount;
+        }
+
+        LoopStrategy(boxesArray) {
+            let currentBox = this.id;
+
+            for (let i = 0; i < this.boxCount / 2; i++) {
+                if (boxesArray[currentBox] == this.id) {
+                    return true;
+                }
+
+                currentBox = boxesArray[currentBox];
+            }
+
+            return false;
+        }
+
+        RandomStrategy(boxesArray) {
+            let attemptedBoxes = [];
+
+            for (let i = 0; i < this.boxCount / 2; i++) {
+                let randBox = Math.floor(Math.random() * this.boxCount);
+
+                while (attemptedBoxes.includes(randBox)) {
+                    randBox = Math.floor(Math.random() * this.boxCount);
+                }
+
+                attemptedBoxes.push(randBox);
+
+                if (boxesArray[randBox] == this.id) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }   
+
+    function startRuns()
+    {
+        let strPassFail = '';
+        let htmlLoop = '';
+        let htmlRandom = '';
+        let successLoop = true;
+        let successRandom = true;
+        let passesLoop = 0;
+        let passesRandom = 0;
+        let tableLoop = document.getElementById('tableLoop');
+        let tableRandom = document.getElementById('tableRandom');
+        let totalRuns = document.getElementById('totalRuns');
+        let loopPassTotal = document.getElementById('loopPassTotal');
+        let randomPassTotal = document.getElementById('randomPassTotal');
+        let loopPercentage = document.getElementById('loopPercentage');
+        let randomPercentage = document.getElementById('randomPercentage');
+        let startBtn = document.getElementById('startBtn');
+        
+        startBtn.disabled = true;
+        tableLoop.innerHTML = '';
+        tableRandom.innerHTML = '';
+
+        let numOfRuns = Math.abs(document.getElementById('runs').value);
+        let participantCount = Math.min(maxParticipants, Math.abs(document.getElementById('participants').value));
+        let prisoners = Array(participantCount).fill().map((_, i) => new Prisoner(i, participantCount));
+        let boxes = Array(participantCount).fill().map((_, i) => i);
+
+        let maximumRuns = maxRuns;
+
+        if (participantCount < lowParticipants + 1) {
+            maximumRuns = maxRunsLowParticipants;
+        }
+
+        numOfRuns = Math.min(maximumRuns, numOfRuns);
+
+        document.getElementById('runs').value = numOfRuns;
+        document.getElementById('participants').value = participantCount;
+
+        for (let i = 0; i < numOfRuns; i++) {
+            Shuffle(boxes);
+
+            successLoop = true;
+            successRandom = true;
+
+            for (let j = 0; j < prisoners.length; j++) {
+                let pass = prisoners[j].LoopStrategy(boxes);
+                if (!pass) {
+                    successLoop = false;
+                }
+
+                pass = prisoners[j].RandomStrategy(boxes);
+                if (!pass) {
+                    successRandom = false;
+                }
+            }
+
+            if (i > 0 && !(i % Math.min(maxCols, Math.ceil(numOfRuns/10)))) {
+                addTableRow(tableLoop, htmlLoop);
+                htmlLoop = '';
+
+                addTableRow(tableRandom, htmlRandom);
+                htmlRandom = '';
+            }
+
+            if (successLoop) {
+                strPassFail = 'pass';
+                passesLoop++;
+            }
+            else {
+                strPassFail = 'fail';
+            }
+            htmlLoop += `<th class="${strPassFail}">Run ${parseInt(i) + 1}:</th>`;
+
+            if (successRandom) {
+                strPassFail = 'pass';
+                passesRandom++;
+            }
+            else {
+                strPassFail = 'fail';
+            }
+            htmlRandom += `<th class="${strPassFail}">Run ${parseInt(i) + 1}:</th>`;
+        }
+
+        addTableRow(tableLoop, htmlLoop);
+        addTableRow(tableRandom, htmlRandom);
+        
+        document.getElementById('tableLoopFootNote').innerText = `${passesLoop} out of ${numOfRuns} runs passed`;
+        document.getElementById('tableRandomFootNote').innerText = `${passesRandom} out of ${numOfRuns} runs passed`;
+
+        let tRuns = parseInt(totalRuns.innerText) + numOfRuns;
+        totalRuns.innerText = tRuns;
+
+        let lpTotal = parseInt(loopPassTotal.innerText) + passesLoop;
+        loopPassTotal.innerText = lpTotal;
+        loopPercentage.innerText = parseFloat((lpTotal / tRuns).toFixed(6));
+
+        let rpTotal = parseInt(randomPassTotal.innerText) + passesRandom;
+        randomPassTotal.innerText = rpTotal;
+        randomPercentage.innerText = parseFloat((rpTotal / tRuns).toFixed(6));
+
+        startBtn.disabled = false;        
+    }
+
+    function addTableRow(table, html)
+    {
+        let tr = document.createElement('tr');
+        tr.innerHTML = html;
+        table.append(tr);
+    }
+
+    function addTableFooter(table, text)
+    {
+        let tfoot = document.createElement('tfoot');
+        let tr = document.createElement('tr');
+        tr.innerText = text;
+        tfoot.append(tr);
+        table.append(tfoot);
+    }
+
+    function Shuffle(array) 
+    {
+        for (let i = array.length - 1; i > 0; i--) {
+            let j = Math.floor(Math.random() * (i + 1));
+            let temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+        }
+    } 
+  </script>
+</body>
+</html>
